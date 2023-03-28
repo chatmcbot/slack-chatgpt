@@ -239,7 +239,7 @@ def handler(event, context_):
                         "type": "input",
                         "block_id": "system_prompt",
                         "label": {"type": "plain_text", "text": "System Prompt"},
-                        "element": {"type": "plain_text_input", "action_id": "input", "initial_value": already_set_system_prompt or ""},
+                        "element": {"type": "plain_text_input", "action_id": "input", "initial_value": already_set_system_prompt or DEFAULT_SYSTEM_TEXT},
                     },
                 ],
             },
