@@ -226,9 +226,16 @@ def handler(event, context_):
                             },
                         },
                     },
+                    {
+                        "type": "input",
+                        "block_id": "system_prompt",
+                        "label": {"type": "plain_text", "text": "System Prompt"},
+                        "element": {"type": "plain_text_input", "action_id": "input"},
+                    },
                 ],
             },
         )
+
 
     def validate_api_key_registration(ack: Ack, view: dict, context: BoltContext):
         already_set_api_key = context.get("OPENAI_API_KEY")
