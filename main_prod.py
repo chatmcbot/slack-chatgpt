@@ -126,16 +126,10 @@ def handler(event, context_):
                 Bucket=openai_bucket_name, Key=context.team_id
             )
             config_str: str = s3_response["Body"].read().decode("utf-8")
-            if config_str.startswith("{"):
-                config = json.loads(config_str)
-                context["OPENAI_API_KEY"] = config.get("api_key")
-                context["OPENAI_MODEL"] = config.get("model")
-                context["SYSTEM_PROMPT"] = config.get("system_prompt")  # Added this line
-            else:
-                # The legacy data format
-                context["OPENAI_API_KEY"] = config_str
-                context["OPENAI_MODEL"] = DEFAULT_OPENAI_MODEL
-                context["SYSTEM_PROMPT"] = DEFAULT_SYSTEM_TEXT  # Added this line
+            config = json.loads(config_str)
+            context["OPENAI_API_KEY"] = config.get("api_key")
+            context["OPENAI_MODEL"] = config.get("model")
+            context["SYSTEM_PROMPT"] = config.get("system_prompt")  # Added this line
         except:  # noqa: E722
             context["OPENAI_API_KEY"] = None
         next_()
