@@ -229,7 +229,7 @@ def handler(event, context_):
                             "initial_option": {
                                 "text": {
                                     "type": "plain_text",
-                                    "text": already_set_model if already_set_model else  MODEL_NAME_MAPPING["gpt-3.5-turbo"],
+                                    "text": MODEL_NAME_MAPPING[already_set_model] if already_set_model else MODEL_NAME_MAPPING["gpt-3.5-turbo"],
                                 },
                                 "value": already_set_model or "gpt-3.5-turbo",
                             },
