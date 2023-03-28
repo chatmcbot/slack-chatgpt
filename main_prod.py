@@ -19,7 +19,7 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from slack_bolt import App, Ack, BoltContext
 
 from app.bolt_listeners import register_listeners, before_authorize
-from app.env import USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL
+from app.env import DEFAULT_SYSTEM_TEXT, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL
 from app.home_tab import build_home_tab, DEFAULT_MESSAGE, DEFAULT_CONFIGURE_LABEL
 from app.i18n import translate
 
@@ -130,13 +130,16 @@ def handler(event, context_):
                 config = json.loads(config_str)
                 context["OPENAI_API_KEY"] = config.get("api_key")
                 context["OPENAI_MODEL"] = config.get("model")
+                context["SYSTEM_PROMPT"] = config.get("system_prompt")  # Added this line
             else:
                 # The legacy data format
                 context["OPENAI_API_KEY"] = config_str
                 context["OPENAI_MODEL"] = DEFAULT_OPENAI_MODEL
+                context["SYSTEM_PROMPT"] = DEFAULT_SYSTEM_TEXT  # Added this line
         except:  # noqa: E722
             context["OPENAI_API_KEY"] = None
         next_()
+
 
     @app.event("app_home_opened")
     def render_home_tab(client: WebClient, context: BoltContext):
@@ -195,7 +198,11 @@ def handler(event, context_):
                         "type": "input",
                         "block_id": "api_key",
                         "label": {"type": "plain_text", "text": api_key_text},
-                        "element": {"type": "plain_text_input", "action_id": "input"},
+                        "element": {
+                            "type": "plain_text_input",
+                            "action_id": "input",
+                            "initial_value": already_set_api_key or "",  # Added this line
+                        },
                     },
                     {
                         "type": "input",
@@ -280,15 +287,18 @@ def handler(event, context_):
         inputs = view["state"]["values"]
         api_key = inputs["api_key"]["input"]["value"]
         model = inputs["model"]["input"]["selected_option"]["value"]
+        system_prompt = inputs["system_prompt"]["input"]["value"]  # Added this line
+
         try:
             openai.Model.retrieve(api_key=api_key, id=model)
             s3_client.put_object(
                 Bucket=openai_bucket_name,
                 Key=context.team_id,
-                Body=json.dumps({"api_key": api_key, "model": model}),
+                Body=json.dumps({"api_key": api_key, "model": model, "system_prompt": system_prompt}),  # Updated this line
             )
         except Exception as e:
             logger.exception(e)
+
 
     app.view("configure")(
         ack=validate_api_key_registration,
