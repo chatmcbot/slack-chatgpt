@@ -1,6 +1,6 @@
 DEFAULT_MESSAGE = (
     "To enable this app in this Slack workspace, you need to save your OpenAI API key. "
-    "Visit <https://platform.openai.com/account/api-keys|your developer page> to grap your key!"
+    "Visit <https://platform.openai.com/account/api-keys|your developer page> to grab your key!"
 )
 
 DEFAULT_CONFIGURE_LABEL = "Configure"
