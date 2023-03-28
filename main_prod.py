@@ -19,7 +19,7 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from slack_bolt import App, Ack, BoltContext
 
 from app.bolt_listeners import register_listeners, before_authorize
-from app.env import DEFAULT_SYSTEM_TEXT, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL
+from app.env import DEFAULT_SYSTEM_TEXT, MODEL_NAME_MAPPING, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL
 from app.home_tab import build_home_tab, DEFAULT_MESSAGE, DEFAULT_CONFIGURE_LABEL
 from app.i18n import translate
 
@@ -171,6 +171,7 @@ def handler(event, context_):
     def handle_some_action(ack, body: dict, client: WebClient, context: BoltContext):
         ack()
         already_set_api_key = context.get("OPENAI_API_KEY")
+        already_set_model = context.get("OPENAI_MODEL")
         already_set_system_prompt = context.get("SYSTEM_PROMPT")
         api_key_text = "Save your OpenAI API key:"
         submit = "Submit"
@@ -216,21 +217,21 @@ def handler(event, context_):
                                 {
                                     "text": {
                                         "type": "plain_text",
-                                        "text": "GPT-3.5 Turbo",
+                                        "text": MODEL_NAME_MAPPING["gpt-3.5-turbo"],
                                     },
                                     "value": "gpt-3.5-turbo",
                                 },
                                 {
-                                    "text": {"type": "plain_text", "text": "GPT-4"},
+                                    "text": {"type": "plain_text", "text": MODEL_NAME_MAPPING["gpt-4"]},
                                     "value": "gpt-4",
                                 },
                             ],
                             "initial_option": {
                                 "text": {
                                     "type": "plain_text",
-                                    "text": "GPT-3.5 Turbo",
+                                    "text": already_set_model if already_set_model else  MODEL_NAME_MAPPING["gpt-3.5-turbo"],
                                 },
-                                "value": "gpt-3.5-turbo",
+                                "value": already_set_model or "gpt-3.5-turbo",
                             },
                         },
                     },

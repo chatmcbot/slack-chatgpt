@@ -16,6 +16,11 @@ OPENAI_TIMEOUT_SECONDS = int(
 DEFAULT_OPENAI_MODEL = "gpt-3.5-turbo"
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
 
+MODEL_NAME_MAPPING = {
+    "gpt-3.5-turbo": "GPT-3.5 Turbo",
+    "gpt-4": "GPT-4"
+}
+
 USE_SLACK_LANGUAGE = os.environ.get("USE_SLACK_LANGUAGE", "true") == "true"
 
 SLACK_APP_LOG_LEVEL = os.environ.get("SLACK_APP_LOG_LEVEL", "DEBUG")
