@@ -55,7 +55,8 @@ def start_convo(
             return
 
         # Replace placeholder for Slack user ID in the system prompt
-        new_system_text = SYSTEM_TEXT.format(bot_user_id=context.bot_user_id)
+        system_text = context.get("SYSTEM_PROMPT") or SYSTEM_TEXT
+        new_system_text = system_text.format(bot_user_id=context.bot_user_id)
 
         # Translate format hint in system prompt
         if TRANSLATE_MARKDOWN:
