@@ -171,6 +171,7 @@ def handler(event, context_):
     def handle_some_action(ack, body: dict, client: WebClient, context: BoltContext):
         ack()
         already_set_api_key = context.get("OPENAI_API_KEY")
+        already_set_system_prompt = context.get("SYSTEM_PROMPT")
         api_key_text = "Save your OpenAI API key:"
         submit = "Submit"
         cancel = "Cancel"
@@ -237,7 +238,7 @@ def handler(event, context_):
                         "type": "input",
                         "block_id": "system_prompt",
                         "label": {"type": "plain_text", "text": "System Prompt"},
-                        "element": {"type": "plain_text_input", "action_id": "input"},
+                        "element": {"type": "plain_text_input", "action_id": "input", "initial_value": already_set_system_prompt or ""},
                     },
                 ],
             },
