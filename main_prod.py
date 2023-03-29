@@ -131,7 +131,9 @@ def handler(event, context_):
             context["OPENAI_MODEL"] = config.get("model")
             context["SYSTEM_PROMPT"] = config.get("system_prompt")  # Added this line
         except:  # noqa: E722
-            context["OPENAI_API_KEY"] = None
+            context["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY")
+            context["OPENAI_MODEL"] = DEFAULT_OPENAI_MODEL
+            context["SYSTEM_PROMPT"] = SYSTEM_TEXT
         next_()
 
 

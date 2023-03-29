@@ -7,8 +7,8 @@ Slack user IDs match the regex `<@U.*?>`.
 Your Slack user ID is <@{bot_user_id}>.
 """
 
-SLACK_BASE_PROMPT = os.environ.get("SLACK_BASE_PROMPT", "")
-SYSTEM_TEXT = SLACK_BASE_PROMPT + os.environ.get("OPENAI_SYSTEM_TEXT", DEFAULT_SYSTEM_TEXT)
+# OPENAI_SYSTEM_TEXT is for dev, DEFAULT_SYSTEM_TEXT is prod, SLACK_BASE_PROMPT is for bot specific in prod
+SYSTEM_TEXT = os.environ.get("SLACK_BASE_PROMPT", "") + os.environ.get("OPENAI_SYSTEM_TEXT", DEFAULT_SYSTEM_TEXT)
 
 DEFAULT_OPENAI_TIMEOUT_SECONDS = 30
 OPENAI_TIMEOUT_SECONDS = int(
