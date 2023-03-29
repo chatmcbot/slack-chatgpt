@@ -1,5 +1,5 @@
 frameworkVersion: '3'
-service: slack-chat-gpt-bot
+service: slack-chat-gpt-bot-${env:SLACK_BOT_NAME}
 provider:
   name: aws
   runtime: python3.9

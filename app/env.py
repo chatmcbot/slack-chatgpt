@@ -6,7 +6,9 @@ Format bold text *like this*, italic text _like this_ and strikethrough text ~li
 Slack user IDs match the regex `<@U.*?>`.
 Your Slack user ID is <@{bot_user_id}>.
 """
-SYSTEM_TEXT = os.environ.get("OPENAI_SYSTEM_TEXT", DEFAULT_SYSTEM_TEXT)
+
+SLACK_BASE_PROMPT = os.environ.get("SLACK_BASE_PROMPT", "")
+SYSTEM_TEXT = SLACK_BASE_PROMPT + os.environ.get("OPENAI_SYSTEM_TEXT", DEFAULT_SYSTEM_TEXT)
 
 DEFAULT_OPENAI_TIMEOUT_SECONDS = 30
 OPENAI_TIMEOUT_SECONDS = int(
