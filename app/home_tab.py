@@ -1,9 +1,9 @@
 DEFAULT_MESSAGE = (
-    "To enable this app in this Slack workspace, you need to save your OpenAI API key. "
-    "Visit <https://platform.openai.com/account/api-keys|your developer page> to grab your key!"
+    "This bot offers limited use of GPT-4 by default."
+    "If you run out, you can purchase more tokens or use <https://platform.openai.com/account/api-keys|your own OpenAI key> and models."
 )
 
-DEFAULT_CONFIGURE_LABEL = "Configure"
+DEFAULT_CONFIGURE_LABEL = "Overrides"
 
 
 def build_home_tab(message: str, configure_label: str) -> dict:
