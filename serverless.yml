@@ -62,6 +62,21 @@ package:
     - "!node_modules/**"
     - "!.idea/**"
 
+resources:
+  Resources:
+    SlackInstallationS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:SLACK_INSTALLATION_S3_BUCKET_NAME}
+    SlackStateS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:SLACK_STATE_S3_BUCKET_NAME}
+    OpenAiS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:OPENAI_S3_BUCKET_NAME}
+
 plugins:
   - serverless-python-requirements
 custom:

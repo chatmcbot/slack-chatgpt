@@ -19,7 +19,7 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from slack_bolt import App, Ack, BoltContext
 
 from app.bolt_listeners import register_listeners, before_authorize
-from app.env import DEFAULT_SYSTEM_TEXT, MODEL_NAME_MAPPING, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL
+from app.env import SYSTEM_TEXT, MODEL_NAME_MAPPING, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL
 from app.home_tab import build_home_tab, DEFAULT_MESSAGE, DEFAULT_CONFIGURE_LABEL
 from app.i18n import translate
 
@@ -233,7 +233,7 @@ def handler(event, context_):
                         "type": "input",
                         "block_id": "system_prompt",
                         "label": {"type": "plain_text", "text": "System Prompt"},
-                        "element": {"type": "plain_text_input", "action_id": "input", "initial_value": already_set_system_prompt or DEFAULT_SYSTEM_TEXT},
+                        "element": {"type": "plain_text_input", "action_id": "input", "initial_value": already_set_system_prompt or SYSTEM_TEXT},
                     },
                 ],
             },
