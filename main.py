@@ -7,6 +7,7 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 
 from app.bolt_listeners import before_authorize, register_listeners
 from app.env import (
+    SYSTEM_TEXT,
     USE_SLACK_LANGUAGE,
     SLACK_APP_LOG_LEVEL,
     OPENAI_MODEL,
@@ -62,6 +63,7 @@ if __name__ == "__main__":
     def set_openai_api_key(context: BoltContext, next_):
         context["OPENAI_API_KEY"] = os.environ["OPENAI_API_KEY"]
         context["OPENAI_MODEL"] = OPENAI_MODEL
+        context["SYSTEM_PROMPT"] = SYSTEM_TEXT
         next_()
 
     handler = SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"])
