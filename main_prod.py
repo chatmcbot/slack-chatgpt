@@ -19,7 +19,7 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from slack_bolt import App, Ack, BoltContext
 
 from app.bolt_listeners import register_listeners, before_authorize
-from app.env import SYSTEM_TEXT, MODEL_NAME_MAPPING, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL
+from app.env import SYSTEM_TEXT, MODEL_NAME_MAPPING, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL, CONFIG_ENABLE_PROMPT_OVERRIDE
 from app.home_tab import build_home_tab, DEFAULT_MESSAGE, DEFAULT_CONFIGURE_LABEL
 from app.i18n import translate
 
@@ -183,63 +183,73 @@ def handler(event, context_):
                 openai_api_key=already_set_api_key, context=context, text=cancel
             )
 
+        # Initialize an empty list for the blocks
+        blocks = []
+
+        # Append the "api_key" input block
+        blocks.append({
+            "type": "input",
+            "block_id": "api_key",
+            "label": {"type": "plain_text", "text": api_key_text},
+            "element": {
+                "type": "plain_text_input",
+                "action_id": "input",
+                "initial_value": already_set_api_key or "",  # Added this line
+            },
+        })
+
+        # Append the "model" input block
+        blocks.append({
+            "type": "input",
+            "block_id": "model",
+            "label": {"type": "plain_text", "text": "OpenAI Model"},
+            "element": {
+                "type": "static_select",
+                "action_id": "input",
+                "options": [
+                    {
+                        "text": {
+                            "type": "plain_text",
+                            "text": MODEL_NAME_MAPPING["gpt-3.5-turbo"],
+                        },
+                        "value": "gpt-3.5-turbo",
+                    },
+                    {
+                        "text": {"type": "plain_text", "text": MODEL_NAME_MAPPING["gpt-4"]},
+                        "value": "gpt-4",
+                    },
+                ],
+                "initial_option": {
+                    "text": {
+                        "type": "plain_text",
+                        "text": MODEL_NAME_MAPPING[already_set_model] if already_set_model else MODEL_NAME_MAPPING["gpt-3.5-turbo"],
+                    },
+                    "value": already_set_model or "gpt-3.5-turbo",
+                },
+            },
+        })
+
+        if CONFIG_ENABLE_PROMPT_OVERRIDE:
+            blocks.append({
+                "type": "input",
+                "block_id": "system_prompt",
+                "label": {"type": "plain_text", "text": "Override System Prompt"},
+                "element": {"type": "plain_text_input", "action_id": "input", "initial_value": already_set_system_prompt or SYSTEM_TEXT},
+            })
+
+        # Use the dynamically created list of blocks in the client.views_open() call
         client.views_open(
             trigger_id=body["trigger_id"],
             view={
                 "type": "modal",
                 "callback_id": "configure",
-                "title": {"type": "plain_text", "text": "OpenAI API Key"},
+                "title": {"type": "plain_text", "text": "Configure"},
                 "submit": {"type": "plain_text", "text": submit},
                 "close": {"type": "plain_text", "text": cancel},
-                "blocks": [
-                    {
-                        "type": "input",
-                        "block_id": "api_key",
-                        "label": {"type": "plain_text", "text": api_key_text},
-                        "element": {
-                            "type": "plain_text_input",
-                            "action_id": "input",
-                            "initial_value": already_set_api_key or "",  # Added this line
-                        },
-                    },
-                    {
-                        "type": "input",
-                        "block_id": "model",
-                        "label": {"type": "plain_text", "text": "OpenAI Model"},
-                        "element": {
-                            "type": "static_select",
-                            "action_id": "input",
-                            "options": [
-                                {
-                                    "text": {
-                                        "type": "plain_text",
-                                        "text": MODEL_NAME_MAPPING["gpt-3.5-turbo"],
-                                    },
-                                    "value": "gpt-3.5-turbo",
-                                },
-                                {
-                                    "text": {"type": "plain_text", "text": MODEL_NAME_MAPPING["gpt-4"]},
-                                    "value": "gpt-4",
-                                },
-                            ],
-                            "initial_option": {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": MODEL_NAME_MAPPING[already_set_model] if already_set_model else MODEL_NAME_MAPPING["gpt-3.5-turbo"],
-                                },
-                                "value": already_set_model or "gpt-3.5-turbo",
-                            },
-                        },
-                    },
-                    {
-                        "type": "input",
-                        "block_id": "system_prompt",
-                        "label": {"type": "plain_text", "text": "Override System Prompt"},
-                        "element": {"type": "plain_text_input", "action_id": "input", "initial_value": already_set_system_prompt or SYSTEM_TEXT},
-                    },
-                ],
+                "blocks": blocks,
             },
         )
+
 
 
     def validate_api_key_registration(ack: Ack, view: dict, context: BoltContext):
