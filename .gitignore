@@ -1,4 +1,5 @@
 build/
+venv/
 dist/
 .eggs/
 *.egg-info/

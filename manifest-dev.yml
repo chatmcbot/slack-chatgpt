@@ -1,12 +1,12 @@
 display_information:
-  name: ChatGPT (dev)
+  name: Chat McDev
 features:
   app_home:
     home_tab_enabled: false
     messages_tab_enabled: false
     messages_tab_read_only_enabled: true
   bot_user:
-    display_name: ChatGPT Bot (dev)
+    display_name: Chat McDev
     always_online: true
 oauth_config:
   scopes:

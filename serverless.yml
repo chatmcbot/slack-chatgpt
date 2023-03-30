@@ -1,5 +1,5 @@
 frameworkVersion: '3'
-service: slack-chat-gpt-bot
+service: slack-chat-gpt-bot-${env:SLACK_BOT_NAME}
 provider:
   name: aws
   runtime: python3.9
@@ -30,6 +30,8 @@ provider:
             - arn:aws:s3:::${env:OPENAI_S3_BUCKET_NAME}/*
   environment:
     SERVERLESS_STAGE: ${opt:stage, 'prod'}
+    SLACK_BOT_NAME: ${env:SLACK_BOT_NAME}
+    SLACK_BASE_PROMPT: ${env:SLACK_BASE_PROMPT}
     SLACK_SIGNING_SECRET: ${env:SLACK_SIGNING_SECRET}
     SLACK_CLIENT_ID: ${env:SLACK_CLIENT_ID}
     SLACK_CLIENT_SECRET: ${env:SLACK_CLIENT_SECRET}
@@ -37,9 +39,15 @@ provider:
     SLACK_INSTALLATION_S3_BUCKET_NAME: ${env:SLACK_INSTALLATION_S3_BUCKET_NAME}
     SLACK_STATE_S3_BUCKET_NAME: ${env:SLACK_STATE_S3_BUCKET_NAME}
     OPENAI_S3_BUCKET_NAME: ${env:OPENAI_S3_BUCKET_NAME}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+    CONFIG_ENABLE_OPENAI_KEY: ${env:CONFIG_ENABLE_OPENAI_KEY}
+    CONFIG_ENABLE_OPENAI_MODEL: ${env:CONFIG_ENABLE_OPENAI_MODEL}
+    CONFIG_ENABLE_PROMPT_OVERRIDE: ${env:CONFIG_ENABLE_PROMPT_OVERRIDE}
+    ALLOW_FREE_OPENAI_KEY: ${env:ALLOW_FREE_OPENAI_KEY}
     OPENAI_TIMEOUT_SECONDS: 25
     SLACK_APP_LOG_LEVEL: WARN
     TRANSLATE_MARKDOWN: true
+    
 
 functions:
   app:
@@ -61,6 +69,21 @@ package:
     - "!.venv/**"
     - "!node_modules/**"
     - "!.idea/**"
+
+resources:
+  Resources:
+    SlackInstallationS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:SLACK_INSTALLATION_S3_BUCKET_NAME}
+    SlackStateS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:SLACK_STATE_S3_BUCKET_NAME}
+    OpenAiS3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${env:OPENAI_S3_BUCKET_NAME}
 
 plugins:
   - serverless-python-requirements

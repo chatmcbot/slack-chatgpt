@@ -19,24 +19,14 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from slack_bolt import App, Ack, BoltContext
 
 from app.bolt_listeners import register_listeners, before_authorize
-from app.env import USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL
+from app.env import CONFIG_ENABLE_OPENAI_KEY, CONFIG_ENABLE_OPENAI_MODEL, OPENAI_API_KEY, SYSTEM_TEXT, MODEL_NAME_MAPPING, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL, CONFIG_ENABLE_PROMPT_OVERRIDE
 from app.home_tab import build_home_tab, DEFAULT_MESSAGE, DEFAULT_CONFIGURE_LABEL
 from app.i18n import translate
 
 #
 # Product deployment (AWS Lambda)
 #
-# export SLACK_CLIENT_ID=
-# export SLACK_CLIENT_SECRET=
-# export SLACK_SIGNING_SECRET=
-# export SLACK_SCOPES=app_mentions:read,channels:history,groups:history,im:history,mpim:history,chat:write.public,chat:write,users:read
-# export SLACK_INSTALLATION_S3_BUCKET_NAME=
-# export SLACK_STATE_S3_BUCKET_NAME=
-# export OPENAI_S3_BUCKET_NAME=
-# npm install -g serverless
-# serverless plugin install -n serverless-python-requirements
-# serverless deploy
-#
+
 
 import boto3
 from slack_bolt.adapter.aws_lambda import SlackRequestHandler
@@ -136,17 +126,16 @@ def handler(event, context_):
                 Bucket=openai_bucket_name, Key=context.team_id
             )
             config_str: str = s3_response["Body"].read().decode("utf-8")
-            if config_str.startswith("{"):
-                config = json.loads(config_str)
-                context["OPENAI_API_KEY"] = config.get("api_key")
-                context["OPENAI_MODEL"] = config.get("model")
-            else:
-                # The legacy data format
-                context["OPENAI_API_KEY"] = config_str
-                context["OPENAI_MODEL"] = DEFAULT_OPENAI_MODEL
+            config = json.loads(config_str)
+            context["OPENAI_API_KEY"] = config.get("api_key")
+            context["OPENAI_MODEL"] = config.get("model")
+            context["SYSTEM_PROMPT"] = config.get("system_prompt")  # Added this line
         except:  # noqa: E722
-            context["OPENAI_API_KEY"] = None
+            context["OPENAI_API_KEY"] = OPENAI_API_KEY
+            context["OPENAI_MODEL"] = DEFAULT_OPENAI_MODEL
+            context["SYSTEM_PROMPT"] = SYSTEM_TEXT
         next_()
+
 
     @app.event("app_home_opened")
     def render_home_tab(client: WebClient, context: BoltContext):
@@ -178,7 +167,9 @@ def handler(event, context_):
     def handle_some_action(ack, body: dict, client: WebClient, context: BoltContext):
         ack()
         already_set_api_key = context.get("OPENAI_API_KEY")
-        api_key_text = "Save your OpenAI API key:"
+        already_set_model = context.get("OPENAI_MODEL")
+        already_set_system_prompt = context.get("SYSTEM_PROMPT")
+        api_key_text = "Configure:"
         submit = "Submit"
         cancel = "Cancel"
         if already_set_api_key is not None:
@@ -192,53 +183,76 @@ def handler(event, context_):
                 openai_api_key=already_set_api_key, context=context, text=cancel
             )
 
+        # Initialize an empty list for the blocks
+        blocks = []
+
+        # Append the "api_key" input block
+        if CONFIG_ENABLE_OPENAI_KEY:
+            blocks.append({
+                "type": "input",
+                "block_id": "api_key",
+                "label": {"type": "plain_text", "text": api_key_text},
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "input",
+                    "initial_value": already_set_api_key or "",  # Added this line
+                },
+            })
+
+        # Append the "model" input block
+        if CONFIG_ENABLE_OPENAI_MODEL:
+            blocks.append({
+                "type": "input",
+                "block_id": "model",
+                "label": {"type": "plain_text", "text": "OpenAI Model"},
+                "element": {
+                    "type": "static_select",
+                    "action_id": "input",
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": MODEL_NAME_MAPPING["gpt-3.5-turbo"],
+                            },
+                            "value": "gpt-3.5-turbo",
+                        },
+                        {
+                            "text": {"type": "plain_text", "text": MODEL_NAME_MAPPING["gpt-4"]},
+                            "value": "gpt-4",
+                        },
+                    ],
+                    "initial_option": {
+                        "text": {
+                            "type": "plain_text",
+                            "text": MODEL_NAME_MAPPING[already_set_model] if already_set_model else MODEL_NAME_MAPPING["gpt-3.5-turbo"],
+                        },
+                        "value": already_set_model or "gpt-3.5-turbo",
+                    },
+                },
+            })
+
+        if CONFIG_ENABLE_PROMPT_OVERRIDE:
+            blocks.append({
+                "type": "input",
+                "block_id": "system_prompt",
+                "label": {"type": "plain_text", "text": "Override System Prompt"},
+                "element": {"type": "plain_text_input", "action_id": "input", "initial_value": already_set_system_prompt or SYSTEM_TEXT},
+            })
+
+        # Use the dynamically created list of blocks in the client.views_open() call
         client.views_open(
             trigger_id=body["trigger_id"],
             view={
                 "type": "modal",
                 "callback_id": "configure",
-                "title": {"type": "plain_text", "text": "OpenAI API Key"},
+                "title": {"type": "plain_text", "text": "Configure"},
                 "submit": {"type": "plain_text", "text": submit},
                 "close": {"type": "plain_text", "text": cancel},
-                "blocks": [
-                    {
-                        "type": "input",
-                        "block_id": "api_key",
-                        "label": {"type": "plain_text", "text": api_key_text},
-                        "element": {"type": "plain_text_input", "action_id": "input"},
-                    },
-                    {
-                        "type": "input",
-                        "block_id": "model",
-                        "label": {"type": "plain_text", "text": "OpenAI Model"},
-                        "element": {
-                            "type": "static_select",
-                            "action_id": "input",
-                            "options": [
-                                {
-                                    "text": {
-                                        "type": "plain_text",
-                                        "text": "GPT-3.5 Turbo",
-                                    },
-                                    "value": "gpt-3.5-turbo",
-                                },
-                                {
-                                    "text": {"type": "plain_text", "text": "GPT-4"},
-                                    "value": "gpt-4",
-                                },
-                            ],
-                            "initial_option": {
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "GPT-3.5 Turbo",
-                                },
-                                "value": "gpt-3.5-turbo",
-                            },
-                        },
-                    },
-                ],
+                "blocks": blocks,
             },
         )
+
+
 
     def validate_api_key_registration(ack: Ack, view: dict, context: BoltContext):
         already_set_api_key = context.get("OPENAI_API_KEY")
@@ -283,15 +297,18 @@ def handler(event, context_):
         inputs = view["state"]["values"]
         api_key = inputs["api_key"]["input"]["value"]
         model = inputs["model"]["input"]["selected_option"]["value"]
+        system_prompt = inputs["system_prompt"]["input"]["value"]  # Added this line
+
         try:
             openai.Model.retrieve(api_key=api_key, id=model)
             s3_client.put_object(
                 Bucket=openai_bucket_name,
                 Key=context.team_id,
-                Body=json.dumps({"api_key": api_key, "model": model}),
+                Body=json.dumps({"api_key": api_key, "model": model, "system_prompt": system_prompt}),  # Updated this line
             )
         except Exception as e:
             logger.exception(e)
+
 
     app.view("configure")(
         ack=validate_api_key_registration,

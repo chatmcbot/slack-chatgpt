@@ -1,5 +1,6 @@
 import threading
 import time
+import logging
 import re
 from typing import List, Dict, Any, Generator
 
@@ -23,7 +24,7 @@ GPT_3_5_TURBO_0301_MODEL = "gpt-3.5-turbo-0301"
 
 
 # Format message from Slack to send to OpenAI
-def format_openai_message_content(content: str, translate_markdown: bool) -> str:
+def format_openai_message_content(content: str, translate_markdown: bool, user: str) -> str:
     if content is None:
         return None
 
@@ -35,7 +36,10 @@ def format_openai_message_content(content: str, translate_markdown: bool) -> str
     if translate_markdown:
         content = slack_to_markdown(content)
 
-    return content
+    if user:
+        return user + ":" + content
+    else:
+        return content
 
 
 def start_receiving_openai_response(
@@ -86,6 +90,7 @@ def consume_openai_stream_to_write_reply(
     steam: Generator[OpenAIObject, Any, None],
     timeout_seconds: int,
     translate_markdown: bool,
+    logger: logging.Logger,
 ):
     start_time = time.time()
     assistant_reply: Dict[str, str] = {"role": "assistant", "content": ""}
@@ -138,6 +143,7 @@ def consume_openai_stream_to_write_reply(
             assistant_reply["content"], translate_markdown
         )
         wip_reply["message"]["text"] = assistant_reply_text
+        logger.info("consume_openai_stream_to_write_reply(): assistant_reply_text = %s", assistant_reply_text)
         update_wip_message(
             client=client,
             channel=context.channel_id,

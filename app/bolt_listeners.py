@@ -7,7 +7,6 @@ from slack_sdk.web import WebClient
 
 from app.env import (
     OPENAI_TIMEOUT_SECONDS,
-    SYSTEM_TEXT,
     TRANSLATE_MARKDOWN,
 )
 from app.i18n import translate
@@ -22,6 +21,22 @@ from app.reply import post_wip_message
 #
 # Listener functions
 #
+
+def get_current_datetime_readable():
+    from datetime import datetime
+    import pytz
+
+    # Get the current date and time
+    now = datetime.now()
+
+    # Get the current timezone
+    current_timezone = pytz.timezone('UTC')  # Use 'UTC' as an example; you can replace it with your desired timezone
+    localized_now = current_timezone.localize(now)
+
+    # Format the date and time in a human-readable format
+    formatted_date_time = localized_now.strftime('%Y-%m-%d %H:%M:%S %Z%z')
+
+    return formatted_date_time
 
 
 def just_ack(ack: Ack):
@@ -41,12 +56,14 @@ def start_convo(
     client: WebClient,
     logger: logging.Logger,
 ):
+    logger.info("start_convo()")
     wip_reply = None
     try:
         if payload.get("thread_ts") is not None:
             return
 
         openai_api_key = context.get("OPENAI_API_KEY")
+        logger.info("OpenAI Key: {k}".format(k=openai_api_key))
         if openai_api_key is None:
             client.chat_postMessage(
                 channel=context.channel_id,
@@ -55,18 +72,28 @@ def start_convo(
             return
 
         # Replace placeholder for Slack user ID in the system prompt
-        new_system_text = SYSTEM_TEXT.format(bot_user_id=context.bot_user_id)
+        system_text = context.get("SYSTEM_PROMPT")
+        new_system_text = system_text.format(bot_user_id=context.bot_user_id)
 
         # Translate format hint in system prompt
         if TRANSLATE_MARKDOWN:
             new_system_text = slack_to_markdown(new_system_text)
+        
+        new_system_text += "Current Date and time: {s}.".format(s=get_current_datetime_readable())
+        logger.info(
+            "start_convo(): new_system_text = {s}".format(s=new_system_text)
+        )
+
+        logger.info(
+            "start_convo(): playload = {s}".format(s=payload)
+        )
 
         messages = [
             {"role": "system", "content": new_system_text},
             {
                 "role": "user",
                 "content": format_openai_message_content(
-                    payload["text"], TRANSLATE_MARKDOWN
+                    payload["text"], TRANSLATE_MARKDOWN, payload['user']
                 ),
             },
         ]
@@ -96,6 +123,7 @@ def start_convo(
             steam=steam,
             timeout_seconds=OPENAI_TIMEOUT_SECONDS,
             translate_markdown=TRANSLATE_MARKDOWN,
+            logger=logger,
         )
 
     except Timeout:
@@ -147,6 +175,8 @@ def reply_if_necessary(
     client: WebClient,
     logger: logging.Logger,
 ):
+
+    logger.info("reply_if_necessary()")
     wip_reply = None
     try:
         thread_ts = payload.get("thread_ts")
@@ -157,6 +187,7 @@ def reply_if_necessary(
             and payload.get("bot_id") != context.bot_id
         ):
             # Skip a new message by a different app
+            logger.info("reply_if_necessary(): Skip a new message by a different app")
             return
 
         openai_api_key = context.get("OPENAI_API_KEY")
@@ -177,6 +208,7 @@ def reply_if_necessary(
         for idx, reply in enumerate(reply_messages):
             maybe_event_type = reply.get("metadata", {}).get("event_type")
             if maybe_event_type == "chat-gpt-convo":
+                logger.info("reply_if_necessary(): Found a chat-gpt-convo event")
                 if context.bot_id != reply.get("bot_id"):
                     # Remove messages by a different app
                     indices_to_remove.append(idx)
@@ -196,25 +228,39 @@ def reply_if_necessary(
                     messages = maybe_new_messages
                     last_assistant_idx = idx
 
-        if last_assistant_idx == -1:
-            return
+        # if last_assistant_idx == -1: # only respond in thread where assistant messages exist
+        #     logger.info("reply_if_necessary(): last_assistant_idx == -1")
+        #     return
 
         filtered_reply_messages = []
         for idx, reply in enumerate(reply_messages):
             if idx not in indices_to_remove:
                 filtered_reply_messages.append(reply)
         if len(filtered_reply_messages) == 0:
+            logger.info("reply_if_necessary(): No messages to reply to")
             return
 
         for reply in filtered_reply_messages:
-            messages.append(
-                {
-                    "content": format_openai_message_content(
-                        reply.get("text"), TRANSLATE_MARKDOWN
-                    ),
-                    "role": "user",
-                }
-            )
+            if reply.get("user") == context.bot_id:
+                messages.append(
+                    {
+                        "content": format_openai_message_content(
+                            reply.get("text"), TRANSLATE_MARKDOWN, None
+                        ),
+                        "role": "assistant",
+                    }
+                )
+            else:
+                    messages.append(
+                    {
+                        "content": format_openai_message_content(
+                            reply.get("text"), TRANSLATE_MARKDOWN, reply.get("user")
+                        ),
+                        "role": "user",
+                    }
+                )
+        
+        logger.info("reply_if_necessary(): messages (before openai call): " + str(messages))
 
         loading_text = translate(
             openai_api_key=openai_api_key, context=context, text=DEFAULT_LOADING_TEXT
@@ -257,6 +303,7 @@ def reply_if_necessary(
             steam=steam,
             timeout_seconds=OPENAI_TIMEOUT_SECONDS,
             translate_markdown=TRANSLATE_MARKDOWN,
+            logger=logger
         )
 
     except Timeout:
