@@ -41,4 +41,4 @@ with open(f'.env.{args.name}', 'w') as env_file:
 if not records:
     print(f"No records found with ENV_SLACK_BOT_NAME = {args.name}")
 else:
-    print(f"Created .env.{args.name} file. For deploy run: source .env.{args.name} && ./deploy.sh {args.name}")
+    print(f"Created .env.{args.name} file. For deploy run:\nsource .env.{args.name} && ./deploy.sh {args.name}")
