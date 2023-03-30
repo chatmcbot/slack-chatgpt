@@ -175,6 +175,8 @@ def reply_if_necessary(
     client: WebClient,
     logger: logging.Logger,
 ):
+
+    logger.info("reply_if_necessary()")
     wip_reply = None
     try:
         thread_ts = payload.get("thread_ts")
@@ -185,6 +187,7 @@ def reply_if_necessary(
             and payload.get("bot_id") != context.bot_id
         ):
             # Skip a new message by a different app
+            logger.info("reply_if_necessary(): Skip a new message by a different app")
             return
 
         openai_api_key = context.get("OPENAI_API_KEY")
@@ -205,6 +208,7 @@ def reply_if_necessary(
         for idx, reply in enumerate(reply_messages):
             maybe_event_type = reply.get("metadata", {}).get("event_type")
             if maybe_event_type == "chat-gpt-convo":
+                logger.info("reply_if_necessary(): Found a chat-gpt-convo event")
                 if context.bot_id != reply.get("bot_id"):
                     # Remove messages by a different app
                     indices_to_remove.append(idx)
@@ -224,25 +228,39 @@ def reply_if_necessary(
                     messages = maybe_new_messages
                     last_assistant_idx = idx
 
-        if last_assistant_idx == -1:
-            return
+        # if last_assistant_idx == -1: # only respond in thread where assistant messages exist
+        #     logger.info("reply_if_necessary(): last_assistant_idx == -1")
+        #     return
 
         filtered_reply_messages = []
         for idx, reply in enumerate(reply_messages):
             if idx not in indices_to_remove:
                 filtered_reply_messages.append(reply)
         if len(filtered_reply_messages) == 0:
+            logger.info("reply_if_necessary(): No messages to reply to")
             return
 
         for reply in filtered_reply_messages:
-            messages.append(
-                {
-                    "content": format_openai_message_content(
-                        reply.get("text"), TRANSLATE_MARKDOWN
-                    ),
-                    "role": "user",
-                }
-            )
+            if reply.get("user") == context.bot_id:
+                messages.append(
+                    {
+                        "content": format_openai_message_content(
+                            reply.get("text"), TRANSLATE_MARKDOWN, None
+                        ),
+                        "role": "assistant",
+                    }
+                )
+            else:
+                    messages.append(
+                    {
+                        "content": format_openai_message_content(
+                            reply.get("text"), TRANSLATE_MARKDOWN, reply.get("user")
+                        ),
+                        "role": "user",
+                    }
+                )
+        
+        logger.info("reply_if_necessary(): messages (before openai call): " + str(messages))
 
         loading_text = translate(
             openai_api_key=openai_api_key, context=context, text=DEFAULT_LOADING_TEXT

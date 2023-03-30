@@ -36,7 +36,10 @@ def format_openai_message_content(content: str, translate_markdown: bool, user: 
     if translate_markdown:
         content = slack_to_markdown(content)
 
-    return user + ":" + content
+    if user:
+        return user + ":" + content
+    else:
+        return content
 
 
 def start_receiving_openai_response(
