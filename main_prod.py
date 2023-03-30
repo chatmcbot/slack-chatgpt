@@ -19,7 +19,7 @@ from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from slack_bolt import App, Ack, BoltContext
 
 from app.bolt_listeners import register_listeners, before_authorize
-from app.env import SYSTEM_TEXT, MODEL_NAME_MAPPING, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL, CONFIG_ENABLE_PROMPT_OVERRIDE
+from app.env import CONFIG_ENABLE_OPENAI_KEY, CONFIG_ENABLE_OPENAI_MODEL, OPENAI_API_KEY, SYSTEM_TEXT, MODEL_NAME_MAPPING, USE_SLACK_LANGUAGE, SLACK_APP_LOG_LEVEL, DEFAULT_OPENAI_MODEL, CONFIG_ENABLE_PROMPT_OVERRIDE
 from app.home_tab import build_home_tab, DEFAULT_MESSAGE, DEFAULT_CONFIGURE_LABEL
 from app.i18n import translate
 
@@ -131,7 +131,7 @@ def handler(event, context_):
             context["OPENAI_MODEL"] = config.get("model")
             context["SYSTEM_PROMPT"] = config.get("system_prompt")  # Added this line
         except:  # noqa: E722
-            context["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY")
+            context["OPENAI_API_KEY"] = OPENAI_API_KEY
             context["OPENAI_MODEL"] = DEFAULT_OPENAI_MODEL
             context["SYSTEM_PROMPT"] = SYSTEM_TEXT
         next_()
@@ -169,7 +169,7 @@ def handler(event, context_):
         already_set_api_key = context.get("OPENAI_API_KEY")
         already_set_model = context.get("OPENAI_MODEL")
         already_set_system_prompt = context.get("SYSTEM_PROMPT")
-        api_key_text = "Save your OpenAI API key:"
+        api_key_text = "Configure:"
         submit = "Submit"
         cancel = "Cancel"
         if already_set_api_key is not None:
@@ -187,47 +187,49 @@ def handler(event, context_):
         blocks = []
 
         # Append the "api_key" input block
-        blocks.append({
-            "type": "input",
-            "block_id": "api_key",
-            "label": {"type": "plain_text", "text": api_key_text},
-            "element": {
-                "type": "plain_text_input",
-                "action_id": "input",
-                "initial_value": already_set_api_key or "",  # Added this line
-            },
-        })
+        if CONFIG_ENABLE_OPENAI_KEY:
+            blocks.append({
+                "type": "input",
+                "block_id": "api_key",
+                "label": {"type": "plain_text", "text": api_key_text},
+                "element": {
+                    "type": "plain_text_input",
+                    "action_id": "input",
+                    "initial_value": already_set_api_key or "",  # Added this line
+                },
+            })
 
         # Append the "model" input block
-        blocks.append({
-            "type": "input",
-            "block_id": "model",
-            "label": {"type": "plain_text", "text": "OpenAI Model"},
-            "element": {
-                "type": "static_select",
-                "action_id": "input",
-                "options": [
-                    {
+        if CONFIG_ENABLE_OPENAI_MODEL:
+            blocks.append({
+                "type": "input",
+                "block_id": "model",
+                "label": {"type": "plain_text", "text": "OpenAI Model"},
+                "element": {
+                    "type": "static_select",
+                    "action_id": "input",
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": MODEL_NAME_MAPPING["gpt-3.5-turbo"],
+                            },
+                            "value": "gpt-3.5-turbo",
+                        },
+                        {
+                            "text": {"type": "plain_text", "text": MODEL_NAME_MAPPING["gpt-4"]},
+                            "value": "gpt-4",
+                        },
+                    ],
+                    "initial_option": {
                         "text": {
                             "type": "plain_text",
-                            "text": MODEL_NAME_MAPPING["gpt-3.5-turbo"],
+                            "text": MODEL_NAME_MAPPING[already_set_model] if already_set_model else MODEL_NAME_MAPPING["gpt-3.5-turbo"],
                         },
-                        "value": "gpt-3.5-turbo",
+                        "value": already_set_model or "gpt-3.5-turbo",
                     },
-                    {
-                        "text": {"type": "plain_text", "text": MODEL_NAME_MAPPING["gpt-4"]},
-                        "value": "gpt-4",
-                    },
-                ],
-                "initial_option": {
-                    "text": {
-                        "type": "plain_text",
-                        "text": MODEL_NAME_MAPPING[already_set_model] if already_set_model else MODEL_NAME_MAPPING["gpt-3.5-turbo"],
-                    },
-                    "value": already_set_model or "gpt-3.5-turbo",
                 },
-            },
-        })
+            })
 
         if CONFIG_ENABLE_PROMPT_OVERRIDE:
             blocks.append({

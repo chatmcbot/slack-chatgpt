@@ -7,7 +7,6 @@ from slack_sdk.web import WebClient
 
 from app.env import (
     OPENAI_TIMEOUT_SECONDS,
-    SYSTEM_TEXT,
     TRANSLATE_MARKDOWN,
 )
 from app.i18n import translate
@@ -22,6 +21,23 @@ from app.reply import post_wip_message
 #
 # Listener functions
 #
+
+def get_current_datetime_readable():
+    from datetime import datetime
+    import pytz
+
+    # Get the current date and time
+    now = datetime.now()
+
+    # Get the current timezone
+    current_timezone = pytz.timezone('UTC')  # Use 'UTC' as an example; you can replace it with your desired timezone
+    localized_now = current_timezone.localize(now)
+
+    # Format the date and time in a human-readable format
+    formatted_date_time = localized_now.strftime('%Y-%m-%d %H:%M:%S %Z%z')
+
+    # Print the formatted date and time
+    print(formatted_date_time)
 
 
 def just_ack(ack: Ack):
@@ -61,6 +77,8 @@ def start_convo(
         # Translate format hint in system prompt
         if TRANSLATE_MARKDOWN:
             new_system_text = slack_to_markdown(new_system_text)
+        
+        new_system_text += "Current Date and time: {s}.".format(s=get_current_datetime_readable())
 
         messages = [
             {"role": "system", "content": new_system_text},
