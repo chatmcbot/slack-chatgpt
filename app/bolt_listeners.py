@@ -36,8 +36,7 @@ def get_current_datetime_readable():
     # Format the date and time in a human-readable format
     formatted_date_time = localized_now.strftime('%Y-%m-%d %H:%M:%S %Z%z')
 
-    # Print the formatted date and time
-    print(formatted_date_time)
+    return formatted_date_time
 
 
 def just_ack(ack: Ack):
@@ -57,12 +56,14 @@ def start_convo(
     client: WebClient,
     logger: logging.Logger,
 ):
+    logger.info("start_convo()")
     wip_reply = None
     try:
         if payload.get("thread_ts") is not None:
             return
 
         openai_api_key = context.get("OPENAI_API_KEY")
+        logger.info("OpenAI Key: {k}".format(k=openai_api_key))
         if openai_api_key is None:
             client.chat_postMessage(
                 channel=context.channel_id,
@@ -79,13 +80,20 @@ def start_convo(
             new_system_text = slack_to_markdown(new_system_text)
         
         new_system_text += "Current Date and time: {s}.".format(s=get_current_datetime_readable())
+        logger.info(
+            "start_convo(): new_system_text = {s}".format(s=new_system_text)
+        )
+
+        logger.info(
+            "start_convo(): playload = {s}".format(s=payload)
+        )
 
         messages = [
             {"role": "system", "content": new_system_text},
             {
                 "role": "user",
                 "content": format_openai_message_content(
-                    payload["text"], TRANSLATE_MARKDOWN
+                    payload["text"], TRANSLATE_MARKDOWN, payload['user']
                 ),
             },
         ]
@@ -115,6 +123,7 @@ def start_convo(
             steam=steam,
             timeout_seconds=OPENAI_TIMEOUT_SECONDS,
             translate_markdown=TRANSLATE_MARKDOWN,
+            logger=logger,
         )
 
     except Timeout:
@@ -276,6 +285,7 @@ def reply_if_necessary(
             steam=steam,
             timeout_seconds=OPENAI_TIMEOUT_SECONDS,
             translate_markdown=TRANSLATE_MARKDOWN,
+            logger=logger
         )
 
     except Timeout:
