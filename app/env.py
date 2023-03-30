@@ -1,7 +1,7 @@
 import os
 
 DEFAULT_SYSTEM_TEXT = """
-You are a bot in a slack chat room. You might receive messages from multiple people.
+You are a bot in a slack chat room. You can receive messages from multiple people.
 Format bold text *like this*, italic text _like this_ and strikethrough text ~like this~.
 Slack user IDs match the regex `<@U.*?>`.
 Your Slack user ID is <@{bot_user_id}>.
@@ -17,6 +17,7 @@ OPENAI_TIMEOUT_SECONDS = int(
 
 DEFAULT_OPENAI_MODEL = "gpt-3.5-turbo"
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
+CONFIG_ENABLE_PROMPT_OVERRIDE=os.environ.get("CONFIG_ENABLE_PROMPT_OVERRIDE", "true") == "true"
 
 MODEL_NAME_MAPPING = {
     "gpt-3.5-turbo": "GPT-3.5 Turbo",
