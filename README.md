@@ -20,6 +20,8 @@
 
 A fully customizable ChatGPT in Slack bot. Bring your own OpenAI key, configure the system prompt and choose between GPT-4 and 3.5-turbo.
 
+<img src="https://mcbot.chat/assets/example-slack-config.png" alt="Logo">
+
 
 
 ## Development
