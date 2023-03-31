@@ -5,7 +5,7 @@
   <h3 align="center">Chat McBot</h3>
 
   <p align="center">
-    An open-source ChatGPT Bot for Slack
+    An open-source ChatGPT Bot for Slack. Hosted version below (no chat data is stored).
     <br />
     <br />
     <a href="https://get.mcbot.chat"><img alt="Add to Slack" height="30" width="105" src="https://platform.slack-edge.com/img/add_to_slack.png"  /></a>
