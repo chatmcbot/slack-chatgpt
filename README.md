@@ -1,8 +1,6 @@
 <!-- PROJECT LOGO -->
 <p align="center">
-  <a href="https://github.com/calcom/cal.com">
-   <img src="https://www.mcbot.chat/assets/example.png.webp" alt="Logo">
-  </a>
+  
 
   <h3 align="center">Chat McBot</h3>
 
@@ -22,6 +20,8 @@
     <a href="/milestones">Roadmap</a>
   </p>
 </p>
+
+<img src="https://www.mcbot.chat/assets/example.png.webp" alt="Logo">
 
 
 A fully customizable ChatGPT in Slack bot. Bring your own OpenAI key, configure the system prompt and choose between GPT-4 and 3.5-turbo.
@@ -68,5 +68,5 @@ python main.py
 
 ### Credits
 
-Based on [seratch/ChatGPT-in-Slack](/seratch/ChatGPT-in-Slack)
+Based on [seratch/ChatGPT-in-Slack](/https://github.com/seratch/ChatGPT-in-Slack)
 
