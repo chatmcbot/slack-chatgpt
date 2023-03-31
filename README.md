@@ -11,13 +11,11 @@
     <a href="https://get.mcbot.chat"><img alt="Add to Slack" height="30" width="105" src="https://platform.slack-edge.com/img/add_to_slack.png"  /></a>
     <br />
     <br />
-    <!-- <a href="https://slack.cal.com/slack">Slack</a>
-    · -->
     <a href="https://mcbot.chat">Website</a>
   </p>
 </p>
 
-<img src="https://www.mcbot.chat/assets/example.png.webp" alt="Logo">
+<img src="https://www.mcbot.chat/assets/example-slack.png" alt="Logo">
 
 
 A fully customizable ChatGPT in Slack bot. Bring your own OpenAI key, configure the system prompt and choose between GPT-4 and 3.5-turbo.
