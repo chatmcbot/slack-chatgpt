@@ -178,7 +178,7 @@ def handler(event, context_):
         already_set_api_key = context.get("OPENAI_API_KEY")
         already_set_model = context.get("OPENAI_MODEL")
         already_set_system_prompt = context.get("SYSTEM_PROMPT")
-        api_key_text = "Configure:"
+        api_key_text = "OpenAI Key:"
         submit = "Submit"
         cancel = "Cancel"
         if already_set_api_key is not None:
