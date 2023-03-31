@@ -242,7 +242,7 @@ def reply_if_necessary(
             return
 
         for reply in filtered_reply_messages:
-            if reply("user") == context.bot_id != reply.get("bot_id"):
+            if reply.get("user") == context.bot_user_id:
                 messages.append(
                     {
                         "content": format_openai_message_content(
