@@ -16,8 +16,6 @@
     <a href="https://mcbot.chat">Website</a>
     ·
     <a href="/issues">Issues</a>
-    ·
-    <a href="/milestones">Roadmap</a>
   </p>
 </p>
 
