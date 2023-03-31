@@ -22,6 +22,7 @@ from app.reply import post_wip_message
 # Listener functions
 #
 
+
 def get_current_datetime_readable():
     from datetime import datetime
     import pytz
@@ -78,7 +79,7 @@ def start_convo(
         # Translate format hint in system prompt
         if TRANSLATE_MARKDOWN:
             new_system_text = slack_to_markdown(new_system_text)
-        
+
         new_system_text += "Current Date and time: {s}.".format(s=get_current_datetime_readable())
         logger.info(
             "start_convo(): new_system_text = {s}".format(s=new_system_text)
@@ -228,7 +229,7 @@ def reply_if_necessary(
                     messages = maybe_new_messages
                     last_assistant_idx = idx
 
-        if last_assistant_idx == -1: # only respond in thread where assistant messages exist
+        if last_assistant_idx == -1:  # only respond in thread where assistant messages exist
             logger.info("reply_if_necessary(): last_assistant_idx == -1")
             return
 
@@ -251,7 +252,7 @@ def reply_if_necessary(
                     }
                 )
             else:
-                    messages.append(
+                messages.append(
                     {
                         "content": format_openai_message_content(
                             reply.get("text"), TRANSLATE_MARKDOWN, reply.get("user")
@@ -259,7 +260,7 @@ def reply_if_necessary(
                         "role": "user",
                     }
                 )
-        
+
         logger.info("reply_if_necessary(): messages (before openai call): " + str(messages))
 
         loading_text = translate(

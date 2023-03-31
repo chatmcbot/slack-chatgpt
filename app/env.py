@@ -19,9 +19,9 @@ ALLOW_FREE_OPENAI_API_KEY = os.environ.get("ALLOW_FREE_OPENAI_API_KEY", "false")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "") if ALLOW_FREE_OPENAI_API_KEY else ""
 DEFAULT_OPENAI_MODEL = "gpt-3.5-turbo"
 OPENAI_MODEL = os.environ.get("OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
-CONFIG_ENABLE_PROMPT_OVERRIDE=os.environ.get("CONFIG_ENABLE_PROMPT_OVERRIDE", "true") == "true"
-CONFIG_ENABLE_OPENAI_MODEL=os.environ.get("CONFIG_ENABLE_OPENAI_MODEL", "true") == "true"
-CONFIG_ENABLE_OPENAI_KEY=os.environ.get("CONFIG_ENABLE_OPENAI_MODEL", "true") == "true"
+CONFIG_ENABLE_PROMPT_OVERRIDE = os.environ.get("CONFIG_ENABLE_PROMPT_OVERRIDE", "true") == "true"
+CONFIG_ENABLE_OPENAI_MODEL = os.environ.get("CONFIG_ENABLE_OPENAI_MODEL", "true") == "true"
+CONFIG_ENABLE_OPENAI_KEY = os.environ.get("CONFIG_ENABLE_OPENAI_MODEL", "true") == "true"
 
 MODEL_NAME_MAPPING = {
     "gpt-3.5-turbo": "GPT-3.5 Turbo",
