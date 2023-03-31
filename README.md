@@ -14,8 +14,6 @@
     <!-- <a href="https://slack.cal.com/slack">Slack</a>
     · -->
     <a href="https://mcbot.chat">Website</a>
-    ·
-    <a href="/issues">Issues</a>
   </p>
 </p>
 
