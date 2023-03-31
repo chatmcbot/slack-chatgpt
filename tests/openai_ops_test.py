@@ -59,5 +59,5 @@ int main(int argc, char *argv[])
 }""",
         ),
     ]:
-        result = format_openai_message_content(content, False)
+        result = format_openai_message_content(content, False, None)
         assert result == expected
