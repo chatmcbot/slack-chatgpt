@@ -92,6 +92,7 @@ def consume_openai_stream_to_write_reply(
     translate_markdown: bool,
     logger: logging.Logger,
 ):
+    logger.info("consume_openai_stream_to_write_reply() : wip_reply = %s", wip_reply)
     start_time = time.time()
     assistant_reply: Dict[str, str] = {"role": "assistant", "content": ""}
     messages.append(assistant_reply)
