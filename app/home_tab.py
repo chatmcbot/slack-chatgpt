@@ -1,6 +1,6 @@
 DEFAULT_MESSAGE = (
-    "This bot offers limited use of GPT-4 by default."
-    "If you run out, you can purchase more tokens or use <https://platform.openai.com/account/api-keys|your own OpenAI key> and models."
+    "Please use overrides to enter your OpenAI key, choose a model and override the prompt."
+    " You can <https://platform.openai.com/account/api-keys|your create one here>."
 )
 
 DEFAULT_CONFIGURE_LABEL = "Overrides"
