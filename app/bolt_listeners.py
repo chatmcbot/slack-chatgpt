@@ -228,9 +228,9 @@ def reply_if_necessary(
                     messages = maybe_new_messages
                     last_assistant_idx = idx
 
-        # if last_assistant_idx == -1: # only respond in thread where assistant messages exist
-        #     logger.info("reply_if_necessary(): last_assistant_idx == -1")
-        #     return
+        if last_assistant_idx == -1: # only respond in thread where assistant messages exist
+            logger.info("reply_if_necessary(): last_assistant_idx == -1")
+            return
 
         filtered_reply_messages = []
         for idx, reply in enumerate(reply_messages):
@@ -241,7 +241,7 @@ def reply_if_necessary(
             return
 
         for reply in filtered_reply_messages:
-            if reply.get("user") == context.bot_id:
+            if reply("user") == context.bot_id != reply.get("bot_id"):
                 messages.append(
                     {
                         "content": format_openai_message_content(
